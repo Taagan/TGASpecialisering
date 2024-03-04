@@ -21,19 +21,45 @@ void AAIDirectorActor::BeginPlay()
 void AAIDirectorActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	mySpawntimer += DeltaTime;
 }
 
-void AAIDirectorActor::SpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor)
+void AAIDirectorActor::RunDirector(const FTransform& aTransform, const TSubclassOf<AActor>& anActor)
+{
+	if (myEnemyCount >= myEnemyLimit || mySpawntimer < mySpawnTime)
+	{
+		return;
+	}
+	mySpawntimer = 0;
+	//ForceSpawnEnemy(aTransform, anActor);
+	static bool flip = false;
+	SpawnInterestPoint(flip);
+	flip = !flip;
+}
+
+
+void AAIDirectorActor::ForceSpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor)
 {
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	GetWorld()->SpawnActor<AActor>(anActor, aTransform, params);
-	//FEnemy enemy;
-	//enemy.transform = aTransform;
-	//enemy.object = anActor;
-	//enemy.spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	//GetWorld()->SpawnActor<AActor>(enemy.object, enemy.transform, enemy.spawnParameters);
-	//myEnemies.Emplace(enemy);
+	GetWorld()->SpawnActor<AActor>(anActor, aTransform,params);
+	myEnemyCount++;
+}
+
+void AAIDirectorActor::AddIntrestPoint(const FVector& aPoint, const TSubclassOf<AActor>& anActor)
+{
+	FTransform transform;
+	transform.SetLocation(aPoint);
+	FInterestPointInfo info(anActor,transform);
+	myIntrestPoints.emplace_back(info);
+}
+
+void AAIDirectorActor::SpawnInterestPoint(const int anIndex)
+{
+	for (size_t i = 0; i < myMobSize; i++)
+	{
+		ForceSpawnEnemy(myIntrestPoints[anIndex].transform, myIntrestPoints[anIndex].actor);
+	}
 }
 
