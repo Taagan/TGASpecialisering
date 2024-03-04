@@ -21,30 +21,33 @@ void AAIDirectorActor::BeginPlay()
 void AAIDirectorActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	mySpawntimer += DeltaTime;
 }
 
 void AAIDirectorActor::RunDirector(const FTransform& aTransform, const TSubclassOf<AActor>& anActor)
 {
-	if (myEnemyCount >= myEnemyLimit || mySpawntimer < mySpawnTime)
+	if (myEnemyCount >= myEnemyLimit)
 	{
 		return;
 	}
-	mySpawntimer = 0;
-	//ForceSpawnEnemy(aTransform, anActor);
-	static bool flip = false;
-	SpawnInterestPoint(flip);
-	flip = !flip;
 }
 
 
-void AAIDirectorActor::ForceSpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor)
+void AAIDirectorActor::ForceSpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor, AActor*& outActor)
 {
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	GetWorld()->SpawnActor<AActor>(anActor, aTransform,params);
+	outActor = GetWorld()->SpawnActor<AActor>(anActor, aTransform,params);
 	myEnemyCount++;
+}
+
+void AAIDirectorActor::SpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor, AActor*& outActor)
+{
+	if (myEnemyCount >= myEnemyLimit)
+	{
+		return;
+	}
+	ForceSpawnEnemy(aTransform, anActor, outActor);
 }
 
 void AAIDirectorActor::AddIntrestPoint(const FVector& aPoint, const TSubclassOf<AActor>& anActor)
@@ -55,11 +58,37 @@ void AAIDirectorActor::AddIntrestPoint(const FVector& aPoint, const TSubclassOf<
 	myIntrestPoints.emplace_back(info);
 }
 
-void AAIDirectorActor::SpawnInterestPoint(const int anIndex)
+void AAIDirectorActor::SpawnInterestPoint(const int anIndex, AActor*& outActor)
 {
-	for (size_t i = 0; i < myMobSize; i++)
+	ForceSpawnEnemy(myIntrestPoints[anIndex].transform, myIntrestPoints[anIndex].actor, outActor);
+}
+
+void AAIDirectorActor::GetEnemies(TArray<TSubclassOf<AActor>>& someActors)
+{
+	someActors = myEnemies;
+}
+
+void AAIDirectorActor::RemoveActor(const TSubclassOf<AActor>& anActor)
+{
+	int32 index = myEnemies.Find(anActor);
+	if (index != -1)
 	{
-		ForceSpawnEnemy(myIntrestPoints[anIndex].transform, myIntrestPoints[anIndex].actor);
+		myEnemies[index] = myEnemies.Pop();
+		myEnemyCount--;
+	}
+}
+
+void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime, bool& outReady)
+{
+	mySpawnTimer += aDeltaTime;
+	if (mySpawnTimer >= mySpawnTime)
+	{
+		outReady = true;
+		mySpawnTimer = 0;
+	}
+	else
+	{
+		outReady = false;
 	}
 }
 

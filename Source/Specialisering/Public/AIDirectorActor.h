@@ -38,7 +38,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
-	void ForceSpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor);
+	void ForceSpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor,AActor*& outActor);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void SpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor,AActor*& outActor);
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void RunDirector(const FTransform& aPlayerTransform, const TSubclassOf<AActor>& anActor);
@@ -46,8 +49,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void AddIntrestPoint(const FVector& aPoint, const TSubclassOf<AActor>& anActor);
 
-	void SpawnInterestPoint(const int anIndex);
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void SpawnInterestPoint(const int anIndex, AActor*& outActor);
 
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void GetEnemies(TArray<TSubclassOf<AActor>>& someActors);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void RemoveActor(const TSubclassOf<AActor>& anActor);
+
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void ReadyToSpawn(const float& aDeltaTime,bool& outReady);
 
 protected:
 	// Called when the game starts or when spawned
@@ -59,12 +72,14 @@ private:
 
 	std::vector<FInterestPointInfo> myIntrestPoints;
 
-	UPROPERTY(EditAnywhere)
-	float mySpawnTime;
-	float mySpawntimer;
+	TArray<TSubclassOf<AActor>> myEnemies;
 
 	UPROPERTY(EditAnywhere)
-	float myMobSize;
+	float myScore;
+
+	UPROPERTY(EditAnywhere)
+	float mySpawnTime;
+	float mySpawnTimer;
 
 	UPROPERTY(EditAnywhere)
 	int myEnemyLimit;
