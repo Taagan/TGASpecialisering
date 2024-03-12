@@ -32,22 +32,44 @@ void AAIDirectorActor::RunDirector(const FTransform& aTransform, const TSubclass
 }
 
 
-void AAIDirectorActor::ForceSpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor, AActor*& outActor)
+void AAIDirectorActor::ForceSpawnEnemy(const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor)
 {
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	FTransform transform({ 0,0,0 }, aPosition, { 1,1,1 });
 
-	outActor = GetWorld()->SpawnActor<AActor>(anActor, aTransform,params);
+	outActor = GetWorld()->SpawnActor<AActor>(anActor, transform,params);
+	myEnemies.Emplace(outActor);
 	myEnemyCount++;
 }
 
-void AAIDirectorActor::SpawnEnemy(const FTransform& aTransform, const TSubclassOf<AActor>& anActor, AActor*& outActor)
+void AAIDirectorActor::SpawnEnemy(const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor)
 {
 	if (myEnemyCount >= myEnemyLimit)
 	{
 		return;
 	}
-	ForceSpawnEnemy(aTransform, anActor, outActor);
+	ForceSpawnEnemy(aPosition, anActor, outActor);
+}
+
+void AAIDirectorActor::SpawnEnemyAroundLocation(const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor)
+{
+	if (myEnemyCount >= myEnemyLimit)
+	{
+		return;
+	}
+	int ran = FMath::RandRange(0, 359);
+	float radians = ran * (3.14159 / 180);
+	auto x = FMath::Cos(radians);
+	auto y = FMath::Sin(radians);
+	double distance = FMath::RandRange(myEnemyMinSpawnDistance, myEnemyMaxSpawnDistance);
+	x *= distance;
+	y *= distance;
+	FVector newPos = aPosition;
+	newPos.X += x;
+	newPos.Y += y;
+	newPos.Z += 100;
+	SpawnEnemy(newPos, anActor, outActor);
 }
 
 void AAIDirectorActor::AddIntrestPoint(const FVector& aPoint, const TSubclassOf<AActor>& anActor)
@@ -60,15 +82,15 @@ void AAIDirectorActor::AddIntrestPoint(const FVector& aPoint, const TSubclassOf<
 
 void AAIDirectorActor::SpawnInterestPoint(const int anIndex, AActor*& outActor)
 {
-	ForceSpawnEnemy(myIntrestPoints[anIndex].transform, myIntrestPoints[anIndex].actor, outActor);
+	ForceSpawnEnemy(myIntrestPoints[anIndex].transform.GetLocation(), myIntrestPoints[anIndex].actor, outActor);
 }
 
-void AAIDirectorActor::GetEnemies(TArray<TSubclassOf<AActor>>& someActors)
+void AAIDirectorActor::GetEnemies(TArray<AActor*>& someActors)
 {
 	someActors = myEnemies;
 }
 
-void AAIDirectorActor::RemoveActor(const TSubclassOf<AActor>& anActor)
+void AAIDirectorActor::RemoveActor(AActor* anActor, AActor*& aRemovedActor)
 {
 	int32 index = myEnemies.Find(anActor);
 	if (index != -1)
@@ -76,6 +98,7 @@ void AAIDirectorActor::RemoveActor(const TSubclassOf<AActor>& anActor)
 		myEnemies[index] = myEnemies.Pop();
 		myEnemyCount--;
 	}
+	aRemovedActor = anActor;
 }
 
 void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime, bool& outReady)
