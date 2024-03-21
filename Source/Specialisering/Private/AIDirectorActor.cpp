@@ -15,6 +15,7 @@ AAIDirectorActor::AAIDirectorActor()
 void AAIDirectorActor::BeginPlay()
 {
 	Super::BeginPlay();
+	//MyQueryRequest = FEnvQueryRequest(myQuery, myPlayer);
 }
 
 // Called every frame
@@ -36,7 +37,7 @@ void AAIDirectorActor::ForceSpawnEnemy(const FVector& aPosition, const TSubclass
 {
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	FTransform transform({ 0,0,0 }, aPosition, { 1,1,1 });
+	FTransform transform({ 0,0,0 }, aPosition, { myScore * 0.1f,myScore * 0.1f,myScore * 0.1f });
 
 	outActor = GetWorld()->SpawnActor<AActor>(anActor, transform,params);
 	myEnemies.Emplace(outActor);
@@ -52,10 +53,11 @@ void AAIDirectorActor::SpawnEnemy(const FVector& aPosition, const TSubclassOf<AA
 	ForceSpawnEnemy(aPosition, anActor, outActor);
 }
 
-void AAIDirectorActor::SpawnEnemyAroundLocation(const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor)
+void AAIDirectorActor::SpawnEnemyAroundLocation(bool& aSuccsess,const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor)
 {
 	if (myEnemyCount >= myEnemyLimit)
 	{
+		aSuccsess = false;
 		return;
 	}
 	int ran = FMath::RandRange(0, 359);
@@ -69,7 +71,24 @@ void AAIDirectorActor::SpawnEnemyAroundLocation(const FVector& aPosition, const 
 	newPos.X += x;
 	newPos.Y += y;
 	newPos.Z += 100;
+	aSuccsess = true;
 	SpawnEnemy(newPos, anActor, outActor);
+}
+
+void AAIDirectorActor::GetLocationAroundPlayer(FVector& outPosition)
+{
+	int ran = FMath::RandRange(0, 359);
+	float radians = ran * (3.14159 / 180);
+	auto x = FMath::Cos(radians);
+	auto y = FMath::Sin(radians);
+	double distance = FMath::RandRange(myEnemyMinSpawnDistance, myEnemyMaxSpawnDistance);
+	x *= distance;
+	y *= distance;
+	FVector newPos = myPlayer->GetActorTransform().GetLocation();
+	newPos.X += x;
+	newPos.Y += y;
+	newPos.Z += 100;
+	outPosition = newPos;
 }
 
 void AAIDirectorActor::AddIntrestPoint(const FVector& aPoint, const TSubclassOf<AActor>& anActor)
@@ -104,7 +123,8 @@ void AAIDirectorActor::RemoveActor(AActor* anActor, AActor*& aRemovedActor)
 void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime, bool& outReady)
 {
 	mySpawnTimer += aDeltaTime;
-	if (mySpawnTimer >= mySpawnTime)
+	float time = mySpawnTime - myScore * 0.05f;
+	if (mySpawnTimer >= time)
 	{
 		outReady = true;
 		mySpawnTimer = 0;
@@ -115,3 +135,17 @@ void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime, bool& outReady)
 	}
 }
 
+void AAIDirectorActor::SetPlayer(AActor* anActor)
+{
+	myPlayer = anActor;
+}
+
+void AAIDirectorActor::IncreaseScore(const int& anIncrease)
+{
+	myScore = anIncrease;
+}
+
+void AAIDirectorActor::DecreaseScore(const int& anDecrease)
+{
+	myScore = anDecrease;
+}

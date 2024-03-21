@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "AIDirectorActor.generated.h"
+//#include <Runtime/AIModule/Classes/EnvironmentQuery/EnvQuery.h>
+//#include <Runtime/AIModule/Classes/EnvironmentQuery/EnvQueryTypes.h>
+//#include <Runtime/AIModule/Classes/EnvironmentQuery/EnvQueryManager.h>
 
 USTRUCT()
 struct FInterestPointInfo
@@ -44,7 +47,10 @@ public:
 	void SpawnEnemy(const FVector& aPosition, const TSubclassOf<AActor>& anActor,AActor*& outActor);
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
-	void SpawnEnemyAroundLocation(const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor);
+	void SpawnEnemyAroundLocation(bool& aSuccess,const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void GetLocationAroundPlayer(FVector& outPosition);
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void RunDirector(const FTransform& aPlayerTransform, const TSubclassOf<AActor>& anActor);
@@ -61,9 +67,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void RemoveActor(AActor* anActor,AActor*& aRemovedActor);
 
-
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void ReadyToSpawn(const float& aDeltaTime,bool& outReady);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void SetPlayer(AActor* anActor);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void IncreaseScore(const int& anIncrease);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void DecreaseScore(const int& anDecrease);
+
+	//void QueryFinished(TSharedPtr<FEnvQueryResult> Result);
 
 protected:
 	// Called when the game starts or when spawned
@@ -77,6 +93,14 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<AActor*> myEnemies;
+
+	UPROPERTY(VisibleAnywhere)
+	AActor* myPlayer;
+
+	//UPROPERTY()
+	//UEnvQuery* myQuery;
+
+	//FEnvQueryRequest MyQueryRequest;
 
 	UPROPERTY(EditAnywhere)
 	float myScore;
