@@ -27,6 +27,14 @@ struct FInterestPointInfo
 	FTransform transform;
 };
 
+UENUM(BlueprintType)
+enum class AIDStage
+{
+	Relaxed,
+	Ramp,
+	Peak
+};
+
 UCLASS()
 class SPECIALISERING_API AAIDirectorActor : public AActor
 {
@@ -68,7 +76,7 @@ public:
 	void RemoveActor(AActor* anActor,AActor*& aRemovedActor);
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
-	void ReadyToSpawn(const float& aDeltaTime,bool& outReady);
+	void ReadyToSpawn(const float& aDeltaTime, const float& aScoreMultiplier,bool& outReady);
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void SetPlayer(AActor* anActor);
@@ -78,6 +86,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void DecreaseScore(const int& anDecrease);
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void StartRamp();
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void StartPeak();
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void StartRelax();
 
 	//void QueryFinished(TSharedPtr<FEnvQueryResult> Result);
 
@@ -97,10 +114,6 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	AActor* myPlayer;
 
-	//UPROPERTY()
-	//UEnvQuery* myQuery;
-
-	//FEnvQueryRequest MyQueryRequest;
 
 	UPROPERTY(EditAnywhere)
 	float myScore;
@@ -110,11 +123,22 @@ private:
 	float mySpawnTimer;
 
 	UPROPERTY(EditAnywhere)
+	float myRelaxTime;
+	float myRelaxTimer;
+
+	float myRampCounter;
+
+	UPROPERTY(EditAnywhere)
 	int myEnemyLimit;
 	int myEnemyCount;
+
+	int myEnemyPeakAmount;
+
 	UPROPERTY(EditAnywhere)
 	int myEnemyMinSpawnDistance;
 	UPROPERTY(EditAnywhere)
 	int myEnemyMaxSpawnDistance;
 
+	UPROPERTY(EditAnywhere)
+	AIDStage myCurrentStage;
 };

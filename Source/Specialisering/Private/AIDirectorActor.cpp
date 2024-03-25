@@ -120,14 +120,36 @@ void AAIDirectorActor::RemoveActor(AActor* anActor, AActor*& aRemovedActor)
 	aRemovedActor = anActor;
 }
 
-void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime, bool& outReady)
+void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime,const float& aScoreMultiplier, bool& outReady)
 {
+	if (myCurrentStage == AIDStage::Relaxed)
+	{
+		myRelaxTimer += aDeltaTime;
+		if (myRelaxTimer >= myRelaxTime)
+		{
+			StartRamp();
+		}
+		outReady = false;
+		return;
+	}
 	mySpawnTimer += aDeltaTime;
-	float time = mySpawnTime - myScore * 0.05f;
-	if (mySpawnTimer >= time)
+	float time = mySpawnTime - myScore * aScoreMultiplier;
+	if (mySpawnTimer >= time || myCurrentStage == AIDStage::Peak)
 	{
 		outReady = true;
 		mySpawnTimer = 0;
+		if (myCurrentStage == AIDStage::Ramp)
+		{
+			myRampCounter++;
+			if (myRampCounter >= 15.f)
+			{
+				StartPeak();
+			}
+		}
+		else if (myCurrentStage == AIDStage::Peak && myEnemyCount >= myEnemyPeakAmount)
+		{
+			StartRelax();
+		}
 	}
 	else
 	{
@@ -148,4 +170,29 @@ void AAIDirectorActor::IncreaseScore(const int& anIncrease)
 void AAIDirectorActor::DecreaseScore(const int& anDecrease)
 {
 	myScore = anDecrease;
+}
+
+void AAIDirectorActor::StartRamp()
+{
+	myCurrentStage = AIDStage::Ramp;
+	myRampCounter = 0;
+}
+
+
+void AAIDirectorActor::StartPeak()
+{
+	myCurrentStage = AIDStage::Peak;
+	myEnemyPeakAmount = myEnemyCount * 3;
+	if (myEnemyPeakAmount > myEnemyLimit)
+	{
+		myEnemyPeakAmount = myEnemyLimit;
+	}
+	myRampCounter = 0;
+}
+
+
+void AAIDirectorActor::StartRelax()
+{
+	myCurrentStage = AIDStage::Relaxed;
+	myRampCounter = 0;
 }
