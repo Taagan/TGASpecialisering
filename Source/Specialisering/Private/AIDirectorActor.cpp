@@ -37,7 +37,7 @@ void AAIDirectorActor::ForceSpawnEnemy(const FVector& aPosition, const TSubclass
 {
 	FActorSpawnParameters params;
 	params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-	FTransform transform({ 0,0,0 }, aPosition, { myScore * 0.1f,myScore * 0.1f,myScore * 0.1f });
+	FTransform transform({ 0,0,0 }, aPosition, {1,1,1 });
 
 	outActor = GetWorld()->SpawnActor<AActor>(anActor, transform,params);
 	myEnemies.Emplace(outActor);
@@ -84,7 +84,7 @@ void AAIDirectorActor::GetLocationAroundPlayer(FVector& outPosition)
 	double distance = FMath::RandRange(myEnemyMinSpawnDistance, myEnemyMaxSpawnDistance);
 	x *= distance;
 	y *= distance;
-	FVector newPos = myPlayer->GetActorTransform().GetLocation();
+	FVector newPos = myPlayer->GetActorLocation();
 	newPos.X += x;
 	newPos.Y += y;
 	newPos.Z += 100;
@@ -175,19 +175,20 @@ void AAIDirectorActor::DecreaseScore(const int& anDecrease)
 void AAIDirectorActor::StartRamp()
 {
 	myCurrentStage = AIDStage::Ramp;
+	myRelaxTimer = 0;
 	myRampCounter = 0;
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Starting to Ramp"));
 }
 
 
 void AAIDirectorActor::StartPeak()
 {
 	myCurrentStage = AIDStage::Peak;
-	myEnemyPeakAmount = myEnemyCount * 3;
-	if (myEnemyPeakAmount > myEnemyLimit)
-	{
-		myEnemyPeakAmount = myEnemyLimit;
-	}
+	myEnemyPeakAmount = static_cast<int>(myEnemyLimit * 0.25f);
 	myRampCounter = 0;
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Reached Peak"));
 }
 
 
@@ -195,4 +196,6 @@ void AAIDirectorActor::StartRelax()
 {
 	myCurrentStage = AIDStage::Relaxed;
 	myRampCounter = 0;
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Going Relax"));
 }
