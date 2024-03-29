@@ -96,6 +96,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AIDirector")
 	void StartRelax();
 
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void PunishPlayer();
+
+	UFUNCTION(BlueprintCallable, Category = "AIDirector")
+	void StopPunishingPlayer();
+
+
 	//void QueryFinished(TSharedPtr<FEnvQueryResult> Result);
 
 protected:
@@ -123,6 +130,10 @@ private:
 	float mySpawnTimer;
 
 	UPROPERTY(EditAnywhere)
+	float myRampBeforePeakCount;
+
+	UPROPERTY(EditAnywhere)
+	float myRelaxBaseTime;
 	float myRelaxTime;
 	float myRelaxTimer;
 
@@ -141,4 +152,7 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	AIDStage myCurrentStage;
-};
+
+	UPROPERTY(EditAnywhere)
+	bool myPunishPlayer;
+ };

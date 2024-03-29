@@ -8,7 +8,8 @@ AAIDirectorActor::AAIDirectorActor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	myPunishPlayer = false;
+	myRelaxTime = myRelaxBaseTime;
 }
 
 // Called when the game starts or when spawned
@@ -46,7 +47,7 @@ void AAIDirectorActor::ForceSpawnEnemy(const FVector& aPosition, const TSubclass
 
 void AAIDirectorActor::SpawnEnemy(const FVector& aPosition, const TSubclassOf<AActor>& anActor, AActor*& outActor)
 {
-	if (myEnemyCount >= myEnemyLimit)
+	if (!myPunishPlayer && myEnemyCount >= myEnemyLimit)
 	{
 		return;
 	}
@@ -112,9 +113,10 @@ void AAIDirectorActor::GetEnemies(TArray<AActor*>& someActors)
 void AAIDirectorActor::RemoveActor(AActor* anActor, AActor*& aRemovedActor)
 {
 	int32 index = myEnemies.Find(anActor);
-	if (index != -1 && index != myEnemies.Num())
+	if (index != -1)
 	{
-		myEnemies[index] = myEnemies.Pop();
+		myEnemies[index] = myEnemies.Last();
+		myEnemies.Pop();
 		myEnemyCount--;
 	}
 	aRemovedActor = anActor;
@@ -141,7 +143,7 @@ void AAIDirectorActor::ReadyToSpawn(const float& aDeltaTime,const float& aScoreM
 		if (myCurrentStage == AIDStage::Ramp)
 		{
 			myRampCounter++;
-			if (myRampCounter >= 15.f)
+			if (myRampCounter >= myRampBeforePeakCount)
 			{
 				StartPeak();
 			}
@@ -185,7 +187,7 @@ void AAIDirectorActor::StartRamp()
 void AAIDirectorActor::StartPeak()
 {
 	myCurrentStage = AIDStage::Peak;
-	myEnemyPeakAmount = static_cast<int>(myEnemyLimit * 0.25f);
+	myEnemyPeakAmount = myEnemyCount + static_cast<int>(myEnemyLimit * 0.25f);
 	myRampCounter = 0;
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Reached Peak"));
@@ -198,4 +200,16 @@ void AAIDirectorActor::StartRelax()
 	myRampCounter = 0;
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Going Relax"));
+}
+
+void AAIDirectorActor::PunishPlayer()
+{
+	myPunishPlayer = true;
+	myRelaxTime = myRelaxBaseTime * 0.2f;
+}
+
+void AAIDirectorActor::StopPunishingPlayer()
+{
+	myPunishPlayer = false;
+	myRelaxTime = myRelaxBaseTime;
 }
