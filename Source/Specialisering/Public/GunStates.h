@@ -8,6 +8,8 @@ struct eGunStates
 
 		SG_Harpoon = 1,
 
-		Count = 2,
+		SG_GoopLob = 2,
+
+		Count = 3,
 	};
 };

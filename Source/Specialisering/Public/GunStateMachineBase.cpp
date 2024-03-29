@@ -49,7 +49,7 @@ void GunStateMachineBase::AdvanceStateTransitionChain(int aTransitionJumpLength)
 	myActiveState->Enter();
 }
 
-void GunStateMachineBase::RequestStateChangeString(const std::string& aInputString)
+void GunStateMachineBase::RequestStateChangeString(const std::string aInputString)
 {
 	auto didFind = myInputStringToStateEnumLUT.find(aInputString);
 	if (didFind != myInputStringToStateEnumLUT.end())
@@ -87,7 +87,7 @@ void GunStateMachineBase::SendMouseInput()
 	myActiveState->SendMouseInput();
 }
 
-void GunStateMachineBase::Shoot()
+void GunStateMachineBase::Shoot(int aProjectileID)
 {
-	myGunActor->Shoot();
+	myGunActor->Shoot(aProjectileID);
 }

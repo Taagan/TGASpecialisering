@@ -48,6 +48,7 @@ void AFPSController::BeginPlay()
 	APlayerController* fPC = GetController<APlayerController>();
 	myCrossHair = CreateWidget<UPHUD>(fPC, CrossHairClass);
 	myCrossHair->AddToPlayerScreen();
+	myCrossHair->Init();
 
 	myIsInputtingString = false;
 }
@@ -69,10 +70,20 @@ void AFPSController::Look(const FInputActionValue& aValue)
 			myInputHandler.SendInput(LookAxis);
 			if (myInputHandler.HasInputPathChanged())
 			{
+				if (myInputHandler.GetInputPath().empty())
+				{
+					myCrossHair->ClearComboLines();
+					return;
+				}
+
 				FVector2D endPoint(myInputHandler.GetInputPath().back());
-				FVector2D startPoint = FVector2D::ZeroVector;
-				myCrossHair->AddComboLine(startPoint, endPoint);
-				myCrossHair->SetComboPoints(endPoint);
+				if (myInputHandler.GetInputPath().size() == 1)
+				{
+					endPoint.Y = -endPoint.Y;
+				}
+
+				myCrossHair->AddComboLine(endPoint);
+				//myCrossHair->SetComboPoints(endPoint);
 			}
 		}
 	}
@@ -94,6 +105,7 @@ void AFPSController::Shoot(const FInputActionValue& Value)
 	//myGun->ParseInputStringToGun(std::to_string(eInputStringTypes::SHOOT));
 	myIsInputtingString = false;
 	myGun->ParseInputStringToGun(myInputHandler.RetrieveString());
+	myCrossHair->ClearCombo();
 	myGun->ForwardShootAction();
 }
 
@@ -103,6 +115,7 @@ void AFPSController::ToggleInputString(const FInputActionValue& Value)
 	if (myIsInputtingString == false)
 	{
 		myGun->ParseInputStringToGun(myInputHandler.RetrieveString());
+		myCrossHair->ClearCombo();
 	}
 }
 
@@ -111,7 +124,14 @@ void AFPSController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	myInputHandler.Tick(DeltaTime);
 	myCrossHair->SetCrosshairPos(myInputHandler.GetCursorPos());
+
+	const std::string& input = myInputHandler.PeakString();
+	if (!input.empty() && input.back() != 0)
+	{
+		myCrossHair->AddComboImage(input.length(), static_cast<int>(input[input.length() - 1]));
+	}
 }
 
 // Called to bind functionality to input

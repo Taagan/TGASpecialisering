@@ -8,15 +8,17 @@ class InputToStringHandler
 {
 public:
 	InputToStringHandler();
-	~InputToStringHandler() = default;
+	~InputToStringHandler();
 
-	const FVector2D SendInput(const FVector2D& aMouseDelta);
+	void Tick(float aDeltaTime);
+	void SendInput(const FVector2D& aMouseDelta);
 
 	void ExitCircle();
 	void EnterCircle();
 	void ResetCursor();
 
 	const std::string RetrieveString();
+	const std::string PeakString();
 	const FVector2D& GetCursorPos();
 	const std::vector<FVector2D>& GetInputPath();
 	const bool HasInputPathChanged();
@@ -34,6 +36,9 @@ private:
 	float myInnerCircleRadius;
 	float myOuterCircleRadius;
 	float myRingPointRadius;
+
+	float myBlockInputTimer;
+	float myBlockInputDelay;
 
 	int myCurrentStringIndex;
 	int myLapAmount;

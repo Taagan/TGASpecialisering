@@ -15,7 +15,7 @@ GunStateBase::eStateTransitionJump GSM_SG_QuickAttack::Update(float aDeltaTime)
 {
 	if (myHasReceivedInputThisFrame)
 	{
-		myStateMachine->Shoot();
+		myStateMachine->Shoot(0);
 		return Single;
 	}
 
