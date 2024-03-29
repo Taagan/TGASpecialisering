@@ -112,9 +112,10 @@ void AAIDirectorActor::GetEnemies(TArray<AActor*>& someActors)
 void AAIDirectorActor::RemoveActor(AActor* anActor, AActor*& aRemovedActor)
 {
 	int32 index = myEnemies.Find(anActor);
-	if (index != -1 && index != myEnemies.Num())
+	if (index != -1)
 	{
-		myEnemies[index] = myEnemies.Pop();
+		myEnemies[index] = myEnemies.Last();
+		myEnemies.Pop();
 		myEnemyCount--;
 	}
 	aRemovedActor = anActor;

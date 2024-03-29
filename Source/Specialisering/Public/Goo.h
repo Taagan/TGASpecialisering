@@ -4,27 +4,23 @@
 
 #include "CoreMinimal.h"
 #include "ProjectileBase.h"
-#include "SummonedPillar.generated.h"
+#include "Goo.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class SPECIALISERING_API ASummonedPillar : public AProjectileBase
+class SPECIALISERING_API AGoo : public AProjectileBase
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Tick(float DeltaTime) override;
-	void SetDirection(FVector aDir) override;
-
-	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY()
-	FVector myDesirerdLocation;
+	UPROPERTY(EditAnywhere, Category = "Projectile")
+	float myLingerTime;
 	float myTimer;
-	bool myWillDie;
 };

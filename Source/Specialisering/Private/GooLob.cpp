@@ -23,9 +23,14 @@ void AGooLob::SetDirection(FVector aDir)
 void AGooLob::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
+	if (Cast<AGooLob>(OtherActor))
+	{
+		return;
+	}
+
 	AProjectileBase::NotifyActorBeginOverlap(OtherActor);
 
-	if (Cast<APawn>(OtherActor) && Cast<AProjectileBase>(OtherActor))
+	if (Cast<APawn>(OtherActor) || Cast<AProjectileBase>(OtherActor))
 	{
 		return;
 	}
@@ -34,7 +39,7 @@ void AGooLob::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (World != nullptr)
 	{
 		const FRotator SpawnRotation(GetActorRotation());
-		const FVector SpawnLocation = GetActorLocation();
+		const FVector SpawnLocation = GetActorLocation() - FVector(0.f, 0.f, 50);
 
 		//Set Spawn Collision Handling Override
 		FActorSpawnParameters ActorSpawnParams;
@@ -46,7 +51,7 @@ void AGooLob::NotifyActorBeginOverlap(AActor* OtherActor)
 		auto projectile = World->SpawnActor<AActor>(myProjectile, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		dynamic_cast<AProjectileBase*>(projectile)->SetDirection(FVector(cosf(SpawnRotation.Yaw), sinf(SpawnRotation.Yaw), 0.f));
 	}
-	Destroy();
+	//Destroy();
 }
 
 void AGooLob::BeginPlay()

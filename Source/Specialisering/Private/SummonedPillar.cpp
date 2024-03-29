@@ -8,11 +8,20 @@ void ASummonedPillar::BeginPlay()
 	Super::BeginPlay();
 
 	myDesirerdLocation.Z = GetActorLocation().Z + 400.f;
+
+	myTimer = 0.f;
+
+	myWillDie = false;
 }
 
 void ASummonedPillar::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	myTimer += DeltaTime;
+
+	FRotator rotation = GetActorRotation();
+	SetActorRotation({ 0., 0., rotation.Euler().Z });
 
 	SetActorLocation({
 		GetActorLocation().X,
@@ -21,9 +30,6 @@ void ASummonedPillar::Tick(float DeltaTime)
 
 	/*AddActorWorldOffset(FVector(0.f, 0.f, 1.f) * GetActorLocation().Z - myDesirerdLocation.Z * DeltaTime);
 	AddActorWorldRotation({ -GetActorRotation().Vector().X, -GetActorRotation().Vector().Y, 0. });*/
-
-	FRotator rotation = GetActorRotation();
-	SetActorRotation({ 0., 0., rotation.Euler().Z });
 
 	AProjectileBase::Tick(DeltaTime);
 }
@@ -39,6 +45,12 @@ void ASummonedPillar::SetDirection(FVector aDir)
 void ASummonedPillar::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	Super::NotifyActorBeginOverlap(OtherActor);
+
+	if (myTimer <= 0.5f || myWillDie)
+	{
+		return;
+	}
+
 	AProjectileBase::NotifyActorBeginOverlap(OtherActor);
 
 	if (AProjectileBase* otherProjectile = Cast<AProjectileBase>(OtherActor))
@@ -53,16 +65,21 @@ void ASummonedPillar::NotifyActorBeginOverlap(AActor* OtherActor)
 
 				//Set Spawn Collision Handling Override
 				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 				//TSubclassOf<AActor> projectileClass = *Cast<TSubclassOf<AActor>>(OtherActor);
 
 				// Spawn the projectile at the muzzle
 				auto projectile = World->SpawnActor<AActor>(otherProjectile->GetClass(), SpawnLocation, SpawnRotation, ActorSpawnParams);
-				dynamic_cast<AProjectileBase*>(projectile)->SetDirection(FVector(cosf(SpawnRotation.Yaw), sinf(SpawnRotation.Yaw), 0.f));
+				if (projectile == nullptr)
+				{
+					return;
+				}
+				Cast<AProjectileBase>(projectile)->SetDirection(FVector(cosf(SpawnRotation.Yaw), sinf(SpawnRotation.Yaw), 0.f));
 			}
 		}
 
+		myWillDie = true;
 		Destroy();
 	}
 }
