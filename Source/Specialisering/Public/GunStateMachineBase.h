@@ -20,12 +20,12 @@ public:
 	void AdvanceStateTransitionChain(int aTransitionJumpLength);
 
 	void RequestStateChangeEnum(eGunStates::Enum aGunState);
-	void RequestStateChangeString(const std::string& aInputString);
+	void RequestStateChangeString(const std::string aInputString);
 	void ForceStateChange(eGunStates::Enum aGunState);
 
 	void SendMouseInput();
 
-	void Shoot();
+	void Shoot(int aProjectileID);
 
 private:
 protected:

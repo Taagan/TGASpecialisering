@@ -3,6 +3,7 @@
 
 #include "GunBase.h"
 #include "FPSController.h"
+#include "ProjectileBase.h"
 
 // Sets default values
 AGunBase::AGunBase()
@@ -33,7 +34,7 @@ void AGunBase::Attach(AFPSController* aController)
 	myController = aController;
 }
 
-void AGunBase::ParseInputStringToGun(const std::string& aString)
+void AGunBase::ParseInputStringToGun(const std::string aString)
 {
 	myGunStateMachine->RequestStateChangeString(aString);
 }
@@ -43,21 +44,39 @@ void AGunBase::ForwardShootAction()
 	myGunStateMachine->SendMouseInput();
 }
 
-void AGunBase::Shoot()
+void AGunBase::Shoot(int aProjectileID)
 {
 	UWorld* const World = GetWorld();
 	if (World != nullptr)
 	{
 		APlayerController* PlayerController = Cast<APlayerController>(myController->GetController());
 		const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
-		const FVector SpawnLocation = GetActorLocation();
+		const FVector SpawnLocation = GetActorLocation() /*+ PlayerController->PlayerCameraManager->GetActorForwardVector() * 50.f*/;
 
 		//Set Spawn Collision Handling Override
 		FActorSpawnParameters ActorSpawnParams;
-		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		TSubclassOf<AActor> projectileClass;
+		switch (aProjectileID)
+		{
+		case 0:
+			projectileClass = myStandardProjectile;
+			break;
+		case 1:
+			projectileClass = myWallProjectile;
+			break;
+		case 2:
+			projectileClass = myGoopLobProjectile;
+			break;
+		default:
+			projectileClass = myStandardProjectile;
+			break;
+		}
 
 		// Spawn the projectile at the muzzle
-		World->SpawnActor<AActor>(myProjectile, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		auto projectile = World->SpawnActor<AActor>(projectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+		dynamic_cast<AProjectileBase*>(projectile)->SetDirection(PlayerController->PlayerCameraManager->GetActorForwardVector());
 	}
 }
 

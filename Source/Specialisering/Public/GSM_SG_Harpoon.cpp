@@ -15,7 +15,7 @@ GunStateBase::eStateTransitionJump GSM_SG_Harpoon::Update(float aDeltaTime)
 {
 	if (myHasReceivedInputThisFrame)
 	{
-		myStateMachine->Shoot();
+		myStateMachine->Shoot(1);
 		return Single;
 	}
 

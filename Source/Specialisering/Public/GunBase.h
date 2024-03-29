@@ -25,7 +25,11 @@ protected:
 	GunStateMachineBase* myGunStateMachine;
 
 	UPROPERTY(EditAnywhere, Category = "Gun")
-	TSubclassOf<AActor> myProjectile;
+	TSubclassOf<AActor> myStandardProjectile;
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	TSubclassOf<AActor> myWallProjectile;
+	UPROPERTY(EditAnywhere, Category = "Gun")
+	TSubclassOf<AActor> myGoopLobProjectile;
 
 	AFPSController* myController;
 
@@ -35,9 +39,9 @@ public:
 
 	void Attach(AFPSController* aController);
 
-	void ParseInputStringToGun(const std::string& aString);
+	void ParseInputStringToGun(const std::string aString);
 	void ForwardShootAction();
 
-	void Shoot();
+	void Shoot(int aProjectileID);
 
 };
